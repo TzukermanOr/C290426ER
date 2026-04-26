@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C290426ER - ניהול קורס</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#0c0e1a; --surface:#131627; --surface2:#1a1e35; --surface3:#202440;
+  --border:#272b4a; --accent:#4f9cf9; --accent2:#7c5cbf;
+  --green:#22c55e; --red:#ef4444; --yellow:#f59e0b; --orange:#f97316;
+  --text:#e4e8f8; --text-dim:#7b87b8; --text-faint:#3d4470;
+}
+body { font-family:'Heebo',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; direction:rtl; }
+
+/* HEADER */
+.header { background:linear-gradient(135deg,#111430,#1a1e38); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+.brand-icon { width:42px; height:42px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.brand-title { font-size:18px; font-weight:800; letter-spacing:-0.5px; }
+.brand-sub { font-size:12px; color:var(--text-dim); margin-top:1px; }
+.stat-chip { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:6px; }
+.stat-chip strong { color:var(--text); font-size:14px; }
+
+/* TABS */
+.tabs { display:flex; background:var(--surface); border-bottom:1px solid var(--border); padding:0 28px; overflow-x:auto; }
+.tab { padding:13px 22px; cursor:pointer; font-size:14px; font-weight:600; color:var(--text-dim); border-bottom:2px solid transparent; transition:all .2s; white-space:nowrap; display:flex; align-items:center; gap:7px; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+/* CONTENT */
+.content { padding:24px 28px; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+.section-title { font-size:20px; font-weight:800; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+.badge { background:var(--surface2); border:1px solid var(--border); padding:3px 12px; border-radius:20px; font-size:12px; color:var(--text-dim); font-weight:500; }
+.action-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+
+/* BUTTONS */
+.btn { padding:10px 20px; border-radius:9px; border:none; cursor:pointer; font-family:'Heebo',sans-serif; font-size:14px; font-weight:700; transition:all .2s; display:inline-flex; align-items:center; gap:7px; }
+.btn-primary  { background:var(--accent); color:#fff; }   .btn-primary:hover  { background:#3b8ef0; transform:translateY(-1px); }
+.btn-success  { background:var(--green);  color:#fff; }   .btn-success:hover  { background:#16a34a; }
+.btn-warning  { background:var(--yellow); color:#1a1a1a; } .btn-warning:hover  { background:#d97706; }
+.btn-outline  { background:transparent;   color:var(--text-dim); border:1px solid var(--border); }
+.btn-outline:hover { color:var(--text); border-color:var(--text-dim); }
+.btn-danger   { background:rgba(239,68,68,.15); color:var(--red); border:none; } .btn-danger:hover { background:rgba(239,68,68,.3); }
+.btn-print    { background:linear-gradient(135deg,#1d4ed8,#2563eb); color:#fff; }
+.btn-sm { padding:6px 12px; font-size:12px; border-radius:7px; }
+
+/* TABLES */
+.table-wrap { background:var(--surface); border-radius:14px; border:1px solid var(--border); overflow:hidden; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+thead th { background:var(--surface2); padding:11px 16px; text-align:right; font-weight:700; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--border); }
+tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover { background:var(--surface2); }
+td { padding:11px 16px; vertical-align:middle; }
+.student-idx { width:30px; height:30px; background:var(--surface3); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--accent); }
+.phone-link,.email-link { color:var(--text-dim); text-decoration:none; font-size:13px; transition:color .15s; }
+.phone-link:hover { color:var(--green); }
+.email-link:hover { color:var(--accent); }
+
+/* GANTT */
+.gantt-container { overflow-x:auto; border-radius:14px; border:1px solid var(--border); background:var(--surface); }
+.gantt-table { border-collapse:collapse; font-size:12px; }
+.gantt-table th { background:var(--surface2); padding:7px 3px; text-align:center; border:1px solid var(--border); font-weight:700; color:var(--text-dim); white-space:nowrap; }
+.gantt-table th.name-col { text-align:right; padding:8px 14px; min-width:150px; position:sticky; right:0; z-index:3; background:var(--surface2); border-left:2px solid var(--border); }
+.gantt-table td.name-col { position:sticky; right:0; background:var(--surface); z-index:1; font-weight:600; padding:5px 14px; border:1px solid var(--border); white-space:nowrap; font-size:13px; border-left:2px solid var(--border); }
+.gantt-table tr:hover td { background:var(--surface2); }
+.gantt-table tr:hover td.name-col { background:var(--surface2); }
+.gcell { text-align:center; border:1px solid var(--border); cursor:pointer; height:34px; width:48px; transition:background .1s; font-size:12px; font-weight:700; user-select:none; }
+.gcell:hover { filter:brightness(1.4); }
+.gcell.present { background:rgba(34,197,94,.22);  color:var(--green);  }
+.gcell.absent  { background:rgba(239,68,68,.18);  color:var(--red);    }
+.gcell.excused { background:rgba(249,115,22,.25); color:var(--orange); }
+.gcell.empty   { background:transparent; color:var(--text-faint); }
+.gcell.future  { background:transparent; color:var(--text-faint); cursor:default; }
+.month-row th { background:linear-gradient(135deg,#1a1e38,#202545); color:var(--accent); font-size:12px; font-weight:800; border:1px solid var(--border); }
+.pct-cell { text-align:center; border:1px solid var(--border); font-size:11px; font-weight:700; background:var(--surface2); padding:4px 2px; }
+.pct-high { color:var(--green); } .pct-med { color:var(--yellow); } .pct-low { color:var(--red); }
+.legend { display:flex; gap:16px; margin-bottom:16px; font-size:13px; flex-wrap:wrap; align-items:center; color:var(--text-dim); }
+.legend-item { display:flex; align-items:center; gap:6px; }
+.legend-dot { width:14px; height:14px; border-radius:4px; }
+
+/* EXCUSED PICKER */
+.excused-picker { position:fixed; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px; z-index:400; box-shadow:0 8px 32px rgba(0,0,0,.7); display:none; flex-direction:column; gap:4px; min-width:175px; animation:fadeIn .15s ease; }
+.excused-picker.open { display:flex; }
+.exc-opt { padding:9px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; transition:background .15s; color:var(--text); }
+.exc-opt:hover { background:var(--surface3); }
+
+/* REPORT */
+.report-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px; flex-wrap:wrap; gap:14px; }
+.report-rule-box { background:rgba(79,156,249,.07); border:1px solid rgba(79,156,249,.22); border-radius:12px; padding:14px 20px; font-size:13px; color:var(--text-dim); max-width:540px; line-height:1.7; }
+.report-rule-box strong { color:var(--accent); }
+.report-table-wrap { background:var(--surface); border-radius:14px; border:1px solid var(--border); overflow:hidden; }
+.status-pill { padding:4px 14px; border-radius:20px; font-size:12px; font-weight:800; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
+.status-pass     { background:rgba(34,197,94,.2);  color:var(--green);  }
+.status-fail     { background:rgba(239,68,68,.18); color:var(--red);    }
+.status-override { background:rgba(249,115,22,.2); color:var(--orange); }
+.status-pending  { background:rgba(245,158,11,.15);color:var(--yellow); }
+.pct-bar-wrap { width:72px; height:7px; background:var(--surface3); border-radius:4px; overflow:hidden; display:inline-block; vertical-align:middle; margin-left:6px; }
+.pct-bar-fill { height:100%; border-radius:4px; }
+.override-btn { background:rgba(249,115,22,.14); border:1px solid rgba(249,115,22,.28); color:var(--orange); border-radius:7px; padding:5px 11px; font-size:11px; font-weight:700; cursor:pointer; font-family:'Heebo',sans-serif; }
+.override-btn:hover { background:rgba(249,115,22,.28); }
+.override-btn.active { background:rgba(249,115,22,.32); }
+
+/* SUMMARY CARDS */
+.summary-cards { display:flex; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
+.scard { border-radius:12px; padding:14px 20px; min-width:130px; }
+.scard-num { font-size:28px; font-weight:900; }
+.scard-lbl { font-size:12px; color:var(--text-dim); margin-top:2px; }
+
+/* TOPICS */
+.topics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:16px; }
+.topic-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; transition:border-color .2s,transform .2s; }
+.topic-card:hover { border-color:var(--accent2); transform:translateY(-2px); }
+.topic-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.topic-title { font-weight:800; font-size:16px; }
+.topic-status { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.s-notstarted { background:rgba(74,82,128,.25); color:var(--text-dim); }
+.s-inprogress { background:rgba(79,156,249,.2);  color:var(--accent); }
+.s-done       { background:rgba(34,197,94,.2);   color:var(--green); }
+.progress-wrap { background:var(--surface3); border-radius:6px; height:7px; overflow:hidden; margin:10px 0 6px; }
+.progress-bar { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .5s ease; }
+
+/* NOTES */
+.notes-layout { display:grid; grid-template-columns:230px 1fr; gap:16px; min-height:520px; }
+.notes-sidebar { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+.sidebar-header { background:var(--surface2); padding:12px 16px; font-size:11px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--border); }
+.sidebar-item { padding:10px 16px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px; font-weight:500; transition:background .15s; display:flex; align-items:center; justify-content:space-between; }
+.sidebar-item:last-child { border-bottom:none; }
+.sidebar-item:hover { background:var(--surface2); }
+.sidebar-item.active { background:rgba(79,156,249,.1); color:var(--accent); border-right:3px solid var(--accent); font-weight:700; }
+.todo-badge { background:var(--red); color:#fff; border-radius:10px; font-size:10px; font-weight:800; padding:1px 7px; }
+.notes-panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; }
+.notes-panel-title { font-size:18px; font-weight:800; margin-bottom:16px; color:var(--accent); padding-bottom:14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.note-add-row { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.todo-input { flex:1; min-width:180px; background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:10px 14px; color:var(--text); font-family:'Heebo',sans-serif; font-size:14px; direction:rtl; }
+.todo-input:focus { outline:none; border-color:var(--accent); }
+.todo-input::placeholder { color:var(--text-faint); }
+.note-type-select { background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:10px 12px; color:var(--text); font-family:'Heebo',sans-serif; font-size:13px; direction:rtl; cursor:pointer; }
+.note-type-select:focus { outline:none; border-color:var(--accent); }
+.notes-filter { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+.filter-btn { padding:5px 12px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-dim); font-family:'Heebo',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+.filter-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(79,156,249,.1); }
+.todo-list { list-style:none; }
+.todo-item { display:flex; align-items:flex-start; gap:12px; padding:11px 0; border-bottom:1px solid var(--border); animation:fadeIn .2s ease; }
+.todo-item:last-child { border-bottom:none; }
+.todo-check { width:22px; height:22px; border:2px solid var(--border); border-radius:6px; cursor:pointer; flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; transition:all .2s; font-size:13px; }
+.todo-check.done { background:var(--green); border-color:var(--green); }
+.todo-check:hover:not(.done) { border-color:var(--green); background:rgba(34,197,94,.1); }
+.note-type-tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700; margin-bottom:4px; }
+.nt-general  { background:rgba(123,135,184,.15); color:var(--text-dim); }
+.nt-unclear  { background:rgba(245,158,11,.2);   color:var(--yellow); }
+.nt-task     { background:rgba(79,156,249,.18);   color:var(--accent); }
+.nt-personal { background:rgba(239,68,68,.15);    color:var(--red); }
+.todo-text { font-size:14px; line-height:1.5; }
+.todo-text.done { text-decoration:line-through; color:var(--text-faint); }
+.todo-meta { font-size:11px; color:var(--text-faint); margin-top:2px; }
+.todo-del { color:var(--text-faint); cursor:pointer; font-size:18px; line-height:1; padding:2px 5px; border-radius:4px; transition:color .15s; flex-shrink:0; }
+.todo-del:hover { color:var(--red); background:rgba(239,68,68,.1); }
+
+/* MODALS */
+.modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.78); display:none; align-items:center; justify-content:center; z-index:200; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:28px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; direction:rtl; animation:slideUp .25s ease; }
+.modal-title { font-size:19px; font-weight:800; margin-bottom:22px; }
+.form-group { margin-bottom:16px; }
+.form-label { font-size:12px; color:var(--text-dim); margin-bottom:7px; display:block; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.form-control { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:10px 14px; color:var(--text); font-family:'Heebo',sans-serif; font-size:14px; direction:rtl; transition:border-color .2s; }
+.form-control:focus { outline:none; border-color:var(--accent); }
+select.form-control option { background:var(--surface2); }
+textarea.form-control { resize:vertical; min-height:80px; }
+input[type="range"].form-control { padding:4px 0; background:transparent; border:none; accent-color:var(--accent); }
+.modal-actions { display:flex; gap:8px; margin-top:22px; padding-top:18px; border-top:1px solid var(--border); flex-wrap:wrap; }
+
+/* MISC */
+.empty-state { text-align:center; padding:48px 24px; color:var(--text-dim); }
+.empty-state .icon { font-size:44px; margin-bottom:14px; display:block; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface3); border:1px solid var(--border); border-radius:10px; padding:12px 22px; font-size:14px; font-weight:600; z-index:999; transition:transform .3s ease; pointer-events:none; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+@keyframes fadeIn  { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+
+/* ===== PRINT ===== */
+@media print {
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  .header,.tabs,.action-bar,.report-header .no-print,.summary-cards,
+  .tab-panel:not(#tab-report),.no-print { display:none !important; }
+  #tab-report { display:block !important; }
+  body { background:#fff !important; color:#111 !important; }
+  .content { padding:0 !important; }
+  .section-title { color:#111 !important; font-size:18px !important; margin-bottom:12px !important; }
+  .report-rule-box { background:#f7f9ff !important; border:1px solid #c5d3e8 !important; color:#333 !important; }
+  .report-rule-box strong { color:#1d4ed8 !important; }
+  .report-table-wrap { border:1px solid #ccc !important; border-radius:0 !important; }
+  thead th { background:#f0f4f8 !important; color:#444 !important; border:1px solid #ccc !important; }
+  tbody tr { border-bottom:1px solid #e5e7eb !important; }
+  tbody tr:hover { background:transparent !important; }
+  td { color:#111 !important; border-bottom:1px solid #eee !important; }
+  .status-pass     { background:#d1fae5 !important; color:#065f46 !important; border:1px solid #a7f3d0; }
+  .status-fail     { background:#fee2e2 !important; color:#991b1b !important; border:1px solid #fca5a5; }
+  .status-override { background:#ffedd5 !important; color:#9a3412 !important; border:1px solid #fdba74; }
+  .status-pending  { background:#fef9c3 !important; color:#854d0e !important; }
+  .pct-bar-wrap    { background:#e5e7eb !important; }
+  .print-footer { display:block !important; margin-top:32px; font-size:12px; color:#666; border-top:1px solid #ccc; padding-top:12px; }
+  .report-header { margin-bottom:16px; }
+}
+.print-footer { display:none; }
+
+@media (max-width:768px) {
+  .header-stats { display:none; }
+  .content { padding:14px; }
+  .notes-layout { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="brand-icon">🎓</div>
+    <div>
+      <div class="brand-title">C290426ER</div>
+      <div class="brand-sub">מערכת ניהול קורס - יום א' + יום ד' | 29.4.26 - 28.10.26</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px" class="header-stats">
+    <div class="stat-chip">👥 <strong>17</strong> סטודנטים</div>
+    <div class="stat-chip">📅 <strong id="chip-sessions">--</strong> מפגשים</div>
+    <div class="stat-chip">⚠️ סף נוכחות: <strong>80%</strong></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('students')">👥 סטודנטים</div>
+  <div class="tab" onclick="showTab('attendance')">📅 נוכחות</div>
+  <div class="tab" onclick="showTab('report')">📊 דוח נוכחות</div>
+  <div class="tab" onclick="showTab('topics')">📚 נושאים</div>
+  <div class="tab" onclick="showTab('notes')">📝 הערות</div>
+</div>
+
+<div class="content">
+
+<!-- STUDENTS -->
+<div id="tab-students" class="tab-panel active">
+  <div class="section-title">👥 רשימת סטודנטים <span class="badge">17 סטודנטים</span></div>
+  <div class="action-bar">
+    <button class="btn btn-primary"  onclick="sendEmailAll()">✉️ שלח מייל לכולם</button>
+    <button class="btn btn-success"  onclick="copyAllPhones()">📋 העתק כל הטלפונים</button>
+    <button class="btn btn-warning"  onclick="copyAllEmails()">📋 העתק כל המיילים</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>שם התלמיד</th><th>טלפון</th><th>דוא"ל</th><th>פעולות</th></tr></thead>
+      <tbody id="students-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ATTENDANCE -->
+<div id="tab-attendance" class="tab-panel">
+  <div class="section-title">📅 גאנט נוכחות <span class="badge" id="att-summary">--</span></div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(34,197,94,.3);border:1px solid var(--green)"></div>נוכח ✓</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.28);border:1px solid var(--red)"></div>נעדר ✗</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(249,115,22,.32);border:1px solid var(--orange)"></div>מאושר (מחלה/מילואים/אישי)</div>
+    <span style="color:var(--text-faint);font-size:12px">לחץ לחילוף: ריק &#8594; נוכח &#8594; נעדר &#8594; מאושר &#8594; ריק</span>
+  </div>
+  <div class="gantt-container">
+    <table class="gantt-table" id="gantt-table"></table>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div id="tab-report" class="tab-panel">
+  <div class="report-header">
+    <div>
+      <div class="section-title">📊 דוח נוכחות רשמי</div>
+      <div class="report-rule-box">
+        <strong>📋 כלל הנוכחות - 80%</strong>
+        חובת נוכחות: <strong>80%</strong> לפחות ממסה"כ המפגשים.
+        היעדרויות מאושרות (מחלה / מילואים / אישי מאושר) מופחתות מהמכנה.
+        <br>
+        <strong>נוסחה:</strong> נוכח ÷ (סה"כ מפגשים שהיו - מאושרים) × 100 ≥ 80%
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-self:flex-start" class="no-print">
+      <button class="btn btn-print" onclick="window.print()">🖨️ הדפס דוח</button>
+    </div>
+  </div>
+
+  <div class="summary-cards" id="summary-cards"></div>
+
+  <div class="report-table-wrap">
+    <table id="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>שם הסטודנט</th>
+          <th>נוכח</th>
+          <th>מאושר</th>
+          <th>נעדר</th>
+          <th>לא סומן</th>
+          <th>היו</th>
+          <th>נוכחות אפקטיבית</th>
+          <th>סטטוס</th>
+          <th class="no-print">אישור ידני</th>
+        </tr>
+      </thead>
+      <tbody id="report-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="print-footer">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>קורס: C290426ER &nbsp;|&nbsp; תאריך הפקה: <span id="print-date"></span></div>
+    </div>
+    <div style="margin-top:48px;display:flex;gap:100px">
+      <div>_______________________<br>חתימת מרצה</div>
+      <div>_______________________<br>תאריך</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div id="tab-topics" class="tab-panel">
+  <div class="section-title">📚 נושאים והתקדמות <span class="badge" id="topics-badge">0 נושאים</span></div>
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="openTopicModal()">＋ הוסף נושא</button>
+  </div>
+  <div class="topics-grid" id="topics-grid">
+    <div class="empty-state"><span class="icon">📚</span><p>לחץ להוסיף נושא ראשון</p></div>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div id="tab-notes" class="tab-panel">
+  <div class="section-title">📝 הערות ו-To-Do לסטודנטים</div>
+  <div class="notes-layout">
+    <div class="notes-sidebar" id="notes-sidebar">
+      <div class="sidebar-header">בחר סטודנט</div>
+    </div>
+    <div class="notes-panel" id="notes-panel">
+      <div class="empty-state"><span class="icon">👈</span><p>בחר סטודנט מהרשימה</p></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- EXCUSED PICKER -->
+<div class="excused-picker" id="excused-picker">
+  <div style="font-size:11px;color:var(--text-dim);padding:0 4px 6px;font-weight:700;border-bottom:1px solid var(--border);margin-bottom:2px">סיבת ההיעדרות המאושרת</div>
+  <div class="exc-opt" onclick="setExcused('מחלה')">🤒 מחלה</div>
+  <div class="exc-opt" onclick="setExcused('מילואים')">🎖️ מילואים</div>
+  <div class="exc-opt" onclick="setExcused('אישי מאושר')">👤 אישי מאושר</div>
+  <div class="exc-opt" style="color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);margin-top:2px;padding-top:8px" onclick="setExcused('')">ביטול סיבה</div>
+</div>
+
+<!-- TOPIC MODAL -->
+<div class="modal-overlay" id="topic-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">➕ הוספת נושא</div>
+    <div class="form-group">
+      <label class="form-label">שם הנושא *</label>
+      <input type="text" class="form-control" id="topic-name" placeholder="לדוגמה: גיאומטריה, אלגברה...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">תיאור</label>
+      <textarea class="form-control" id="topic-desc" placeholder="פרטים נוספים..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">סטטוס</label>
+      <select class="form-control" id="topic-status">
+        <option value="not-started">טרם התחיל</option>
+        <option value="in-progress">בתהליך</option>
+        <option value="done">הסתיים</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">התקדמות: <strong id="prog-val">0</strong>%</label>
+      <input type="range" class="form-control" id="topic-progress" min="0" max="100" value="0"
+             oninput="document.getElementById('prog-val').textContent=this.value">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveTopic()">💾 שמור</button>
+      <button class="btn btn-outline" onclick="closeTopicModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERRIDE MODAL -->
+<div class="modal-overlay" id="override-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">⚠️ אישור ידני - <span id="override-name-lbl"></span></div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:18px;line-height:1.6">
+      אישור ידני מעביר את הסטודנט גם אם לא עמד בדרישת ה-80%. יש לתעד סיבה ברורה.
+    </p>
+    <div class="form-group">
+      <label class="form-label">סיבת האישור</label>
+      <select class="form-control" id="ov-reason">
+        <option>מחלה ממושכת</option>
+        <option>מילואים ממושכים</option>
+        <option>נסיבות אישיות חריגות</option>
+        <option>החלטת מרצה</option>
+        <option>אחר</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">הערה נוספת</label>
+      <input type="text" class="form-control" id="ov-note" placeholder="פרטים נוספים לתיעוד...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-warning" onclick="confirmOverride()">✅ אשר מעבר</button>
+      <button class="btn btn-danger"  onclick="removeOverride()">🗑️ בטל אישור</button>
+      <button class="btn btn-outline" onclick="closeOverrideModal()">סגור</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const STUDENTS = [
+  {id:1, name:'פדלון מושיקו',    phone:'050-4233603', email:'moshiko2fadlon@gmail.com'   },
+  {id:2, name:'הטל איתמר',       phone:'052-8286270', email:'itamarhatal1843@gmail.com'  },
+  {id:3, name:'גרינברג אליענה',  phone:'058-4150703', email:'elilily120@gmail.com'       },
+  {id:4, name:'כהן אליסף',       phone:'058-6334011', email:'4celiyasaf@gmail.com'       },
+  {id:5, name:'גובר תומר',       phone:'054-2150934', email:'tomer.guber@gmail.com'      },
+  {id:6, name:'מזרחי אריאל',     phone:'050-7117074', email:'2009ariel09@gmail.com'      },
+  {id:7, name:'זלצר שי',         phone:'050-6806921', email:'shay20109@gmail.com'        },
+  {id:8, name:'עבאס כנאר',       phone:'050-5146960', email:'abasknar@gmail.com'         },
+  {id:9, name:'כנאים מוחמד',     phone:'050-9588801', email:'Mohamedgnauem@gmail.com'   },
+  {id:10,name:'אראוזו יהודה',    phone:'058-5010523', email:'oriondudy@gmail.com'        },
+  {id:11,name:'רונן עידן',       phone:'052-8939383', email:'arielronen68@gmail.com'     },
+  {id:12,name:'מוחסן אדם',       phone:'053-4280048', email:'muhsenadam96@gmail.com'     },
+  {id:13,name:'דוויט יורדנוס',   phone:'054-9515465', email:'daveyordanos7@gmail.com'   },
+  {id:14,name:'אספינוזה אפרים',  phone:'055-3064020', email:'efraim.bennaftali@gmail.com'},
+  {id:15,name:'ברדה שני',        phone:'054-9638330', email:'shaniberdah2001@gmail.com'  },
+  {id:16,name:'שטרית אביה',      phone:'052-7973198', email:'avia27220057@gmail.com'     },
+  {id:17,name:'מנחם עמית מנשה', phone:'050-5630045', email:'amit329192@gmail.com'       },
+];
+
+const MONTHS_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+const NOTE_TYPES = {
+  general:  {icon:'📝', label:'הערה כללית',   cls:'nt-general'  },
+  unclear:  {icon:'❓', label:'נושא לא מובן', cls:'nt-unclear'  },
+  task:     {icon:'✅', label:'משימה / מטלה', cls:'nt-task'     },
+  personal: {icon:'⚠️', label:'בעיה אישית',   cls:'nt-personal' },
+};
+
+// ===== DATES =====
+function genDates() {
+  const out=[], d=new Date(2026,3,29), end=new Date(2026,9,28);
+  while(d<=end){ if(d.getDay()===0||d.getDay()===3) out.push(new Date(d)); d.setDate(d.getDate()+1); }
+  return out;
+}
+const DATES = genDates();
+const TODAY = (()=>{ const t=new Date(); t.setHours(0,0,0,0); return t; })();
+document.getElementById('chip-sessions').textContent = DATES.length;
+document.getElementById('print-date').textContent = new Date().toLocaleDateString('he-IL');
+
+// ===== STATE =====
+function loadState() {
+  try {
+    return {
+      attendance:     JSON.parse(localStorage.getItem('cr_att')  || '{}'),
+      excusedReasons: JSON.parse(localStorage.getItem('cr_exr')  || '{}'),
+      approved:       JSON.parse(localStorage.getItem('cr_appr') || '{}'),
+      topics:         JSON.parse(localStorage.getItem('cr_top')  || '[]'),
+      notes:          JSON.parse(localStorage.getItem('cr_not')  || '{}'),
+    };
+  } catch(e){ return {attendance:{},excusedReasons:{},approved:{},topics:[],notes:{}}; }
+}
+function save() {
+  localStorage.setItem('cr_att',  JSON.stringify(state.attendance));
+  localStorage.setItem('cr_exr',  JSON.stringify(state.excusedReasons));
+  localStorage.setItem('cr_appr', JSON.stringify(state.approved));
+  localStorage.setItem('cr_top',  JSON.stringify(state.topics));
+  localStorage.setItem('cr_not',  JSON.stringify(state.notes));
+}
+let state = loadState();
+
+// ===== UTILS =====
+function dk(d){ return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+function isPast(d){ return d<=TODAY; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+// ===== TABS =====
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const idx=['students','attendance','report','topics','notes'].indexOf(name);
+  if(idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
+  if(name==='attendance') renderGantt();
+  if(name==='report')     renderReport();
+  if(name==='topics')     renderTopics();
+  if(name==='notes')      renderNotes();
+}
+
+// ===== STUDENTS =====
+function renderStudents() {
+  document.getElementById('students-tbody').innerHTML = STUDENTS.map((s,i)=>{
+    const wa='972'+s.phone.replace(/-/g,'').replace(/^0/,'');
+    return `<tr>
+      <td><span class="student-idx">${i+1}</span></td>
+      <td style="font-weight:700">${esc(s.name)}</td>
+      <td><a href="tel:${s.phone}" class="phone-link">📞 ${s.phone}</a></td>
+      <td><a href="mailto:${s.email}" class="email-link">✉️ ${s.email}</a></td>
+      <td style="display:flex;gap:6px">
+        <a href="https://wa.me/${wa}" target="_blank"><button class="btn btn-success btn-sm">💬 WA</button></a>
+        <button class="btn btn-outline btn-sm" onclick="cpEmail('${s.email}')">📋</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function sendEmailAll()  { window.location.href=`mailto:?bcc=${encodeURIComponent(STUDENTS.map(s=>s.email).join(','))}&subject=${encodeURIComponent('קורס C290426ER')}`; }
+function copyAllPhones() { navigator.clipboard.writeText(STUDENTS.map(s=>`${s.name}: ${s.phone}`).join('\n')).then(()=>toast('✅ כל הטלפונים הועתקו!')); }
+function copyAllEmails() { navigator.clipboard.writeText(STUDENTS.map(s=>s.email).join(',')).then(()=>toast('✅ כל המיילים הועתקו!')); }
+function cpEmail(e)      { navigator.clipboard.writeText(e).then(()=>toast('✅ מייל הועתק')); }
+
+// ===== GANTT =====
+// 0=absent, 1=present, 2=excused, undefined=empty
+let pendingExc = null;
+
+function renderGantt() {
+  const monthMap={};
+  DATES.forEach(d=>{ const m=d.getMonth(); if(!monthMap[m]) monthMap[m]=[]; monthMap[m].push(d); });
+  let html='';
+
+  // Month row
+  html+='<tr class="month-row"><th class="name-col">שם</th>';
+  Object.entries(monthMap).forEach(([m,arr])=>{
+    html+=`<th colspan="${arr.length}" style="text-align:center">${MONTHS_HE[+m]} 2026</th>`;
+  });
+  html+='</tr>';
+
+  // Date row
+  html+='<tr><th class="name-col">נוכחות</th>';
+  DATES.forEach(d=>{
+    const lbl=d.getDay()===0?"א'":"ד'";
+    html+=`<th style="min-width:48px;${!isPast(d)?'opacity:.4':''}">
+      <div>${d.getDate()}/${d.getMonth()+1}</div>
+      <div style="font-size:9px;color:var(--accent2)">${lbl}</div>
+    </th>`;
+  });
+  html+='</tr>';
+
+  // Student rows
+  let totP=0, totAll=0;
+  STUDENTS.forEach(s=>{
+    html+=`<tr><td class="name-col">${esc(s.name)}</td>`;
+    DATES.forEach(d=>{
+      const key=`${s.id}_${dk(d)}`;
+      const v=state.attendance[key];
+      const r=state.excusedReasons[key]||'';
+      const past=isPast(d);
+      let cls,icon,title2;
+      if(!past){ cls='gcell future'; icon=''; title2='עתידי'; }
+      else if(v===1){ cls='gcell present'; icon='✓'; title2='נוכח'; totP++; totAll++; }
+      else if(v===0){ cls='gcell absent';  icon='✗'; title2='נעדר'; totAll++; }
+      else if(v===2){
+        const em={'מחלה':'🤒','מילואים':'🎖️','אישי מאושר':'👤','':'מ'};
+        icon=em[r]||'מ'; cls='gcell excused'; title2=`מאושר: ${r||'ללא סיבה'}`; totAll++;
+      }
+      else{ cls='gcell empty'; icon='·'; title2='לא סומן'; }
+      const click=past?`onclick="toggleAtt(${s.id},'${dk(d)}',event)"`:'';
+      html+=`<td class="${cls}" ${click} title="${title2}">${icon}</td>`;
+    });
+    html+='</tr>';
+  });
+
+  // % row per date
+  html+='<tr><td class="name-col" style="background:var(--surface2);font-size:11px;color:var(--text-dim)">נוכחות %</td>';
+  DATES.forEach(d=>{
+    if(!isPast(d)){ html+='<td class="pct-cell" style="color:var(--text-faint)">-</td>'; return; }
+    let p=0,n=0;
+    STUDENTS.forEach(s=>{ const v=state.attendance[`${s.id}_${dk(d)}`]; if(v===1) p++; if(v!==undefined) n++; });
+    const pct=n>0?Math.round(p/STUDENTS.length*100):0;
+    const c=pct>=75?'pct-high':pct>=50?'pct-med':'pct-low';
+    html+=`<td class="pct-cell ${c}">${n>0?pct+'%':'-'}</td>`;
+  });
+  html+='</tr>';
+
+  document.getElementById('gantt-table').innerHTML=html;
+  const ep=totAll>0?Math.round(totP/totAll*100):0;
+  document.getElementById('att-summary').textContent=totAll>0?`${totP}/${totAll} (${ep}%)`:'לא סומנו נוכחויות';
+}
+
+function toggleAtt(sid, dKey, event) {
+  const key=`${sid}_${dKey}`;
+  const cur=state.attendance[key];
+  if(cur===undefined){ state.attendance[key]=1; save(); renderGantt(); }
+  else if(cur===1)   { state.attendance[key]=0; save(); renderGantt(); }
+  else if(cur===0)   {
+    state.attendance[key]=2;
+    pendingExc={sid,dk:dKey};
+    showExcPicker(event);
+    save(); renderGantt();
+  }
+  else {
+    delete state.attendance[key];
+    delete state.excusedReasons[key];
+    pendingExc=null;
+    save(); renderGantt();
+  }
+}
+
+function showExcPicker(event) {
+  const picker=document.getElementById('excused-picker');
+  picker.classList.add('open');
+  let x=event.clientX, y=event.clientY+10;
+  if(x+185>window.innerWidth) x=window.innerWidth-192;
+  if(y+185>window.innerHeight) y=event.clientY-185;
+  picker.style.left=x+'px'; picker.style.top=y+'px';
+}
+
+function setExcused(reason) {
+  if(pendingExc){
+    const key=`${pendingExc.sid}_${pendingExc.dk}`;
+    if(reason) state.excusedReasons[key]=reason;
+    else delete state.excusedReasons[key];
+    pendingExc=null; save(); renderGantt();
+  }
+  document.getElementById('excused-picker').classList.remove('open');
+}
+
+document.addEventListener('click', e=>{
+  const p=document.getElementById('excused-picker');
+  if(p.classList.contains('open')&&!p.contains(e.target)){ p.classList.remove('open'); pendingExc=null; }
+});
+
+// ===== REPORT =====
+function getStats(s) {
+  const past=DATES.filter(d=>isPast(d));
+  let present=0,excused=0,absent=0,unmarked=0;
+  past.forEach(d=>{
+    const v=state.attendance[`${s.id}_${dk(d)}`];
+    if(v===1) present++;
+    else if(v===0) absent++;
+    else if(v===2) excused++;
+    else unmarked++;
+  });
+  const total=past.length;
+  const denom=total-excused;
+  const effPct=denom>0?Math.round(present/denom*100):(total===0?null:0);
+  const rawPct=total>0?Math.round(present/total*100):null;
+  return {present,excused,absent,unmarked,total,effPct,rawPct};
+}
+
+function renderReport() {
+  const pastCount=DATES.filter(d=>isPast(d)).length;
+  let passC=0,failC=0,ovC=0;
+
+  const rowsHtml = STUDENTS.map((s,i)=>{
+    const st=getStats(s);
+    const ov=state.approved[s.id];
+    let pill;
+    if(st.total===0){
+      pill=`<span class="status-pill status-pending">ממתין לנתונים</span>`;
+    } else if(ov&&ov.approved){
+      pill=`<span class="status-pill status-override" title="${esc(ov.reason||'')} ${esc(ov.note||'')}">⚠️ אושר ידנית</span>`;
+      ovC++;
+    } else if(st.effPct!==null&&st.effPct>=80){
+      pill=`<span class="status-pill status-pass">✅ עובר</span>`;
+      passC++;
+    } else {
+      pill=`<span class="status-pill status-fail">❌ לא עובר</span>`;
+      failC++;
+    }
+
+    const barColor=st.effPct===null?'#555':st.effPct>=80?'var(--green)':st.effPct>=60?'var(--yellow)':'var(--red)';
+    const pctTxt=st.effPct!==null?st.effPct+'%':'-';
+    const ovActive=ov&&ov.approved?'active':'';
+    const ovLbl=ov&&ov.approved?'✏️ ערוך':'＋ אשר ידנית';
+    const ovNote=ov&&ov.approved?`<div style="font-size:11px;color:var(--orange);margin-top:2px">סיבה: ${esc(ov.reason||'')} ${ov.note?'- '+esc(ov.note):''}</div>`:'';
+
+    return `<tr>
+      <td>${i+1}</td>
+      <td style="font-weight:700">${esc(s.name)}</td>
+      <td style="color:var(--green);font-weight:700;text-align:center">${st.present}</td>
+      <td style="color:var(--orange);font-weight:700;text-align:center">${st.excused}</td>
+      <td style="color:var(--red);font-weight:700;text-align:center">${st.absent}</td>
+      <td style="color:var(--text-faint);text-align:center">${st.unmarked}</td>
+      <td style="text-align:center">${st.total}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="pct-bar-wrap">
+            <div class="pct-bar-fill" style="width:${st.effPct||0}%;background:${barColor}"></div>
+          </div>
+          <strong style="color:${barColor}">${pctTxt}</strong>
+        </div>
+        ${st.rawPct!==null&&st.rawPct!==st.effPct?`<div style="font-size:11px;color:var(--text-faint)">גולמי: ${st.rawPct}%</div>`:''}
+      </td>
+      <td>${pill}${ovNote}</td>
+      <td class="no-print">
+        <button class="override-btn ${ovActive}" onclick="openOvModal(${s.id})">${ovLbl}</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('report-tbody').innerHTML=rowsHtml;
+
+  document.getElementById('summary-cards').innerHTML=`
+    <div class="scard" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25)">
+      <div class="scard-num" style="color:var(--green)">${passC}</div>
+      <div class="scard-lbl">עוברים ✅</div>
+    </div>
+    <div class="scard" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25)">
+      <div class="scard-num" style="color:var(--red)">${failC}</div>
+      <div class="scard-lbl">לא עוברים ❌</div>
+    </div>
+    <div class="scard" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25)">
+      <div class="scard-num" style="color:var(--orange)">${ovC}</div>
+      <div class="scard-lbl">אישורים ידניים ⚠️</div>
+    </div>
+    <div class="scard" style="background:rgba(79,156,249,.08);border:1px solid rgba(79,156,249,.2)">
+      <div class="scard-num" style="color:var(--accent)">${pastCount}</div>
+      <div class="scard-lbl">מפגשים שהיו 📅</div>
+    </div>`;
+}
+
+// ===== OVERRIDE MODAL =====
+let ovSid=null;
+function openOvModal(sid) {
+  ovSid=sid;
+  const s=STUDENTS.find(x=>x.id===sid);
+  const ov=state.approved[sid]||{};
+  document.getElementById('override-name-lbl').textContent=s.name;
+  document.getElementById('ov-reason').value=ov.reason||'מחלה ממושכת';
+  document.getElementById('ov-note').value=ov.note||'';
+  document.getElementById('override-modal').classList.add('open');
+}
+function confirmOverride() {
+  state.approved[ovSid]={approved:true,reason:document.getElementById('ov-reason').value,note:document.getElementById('ov-note').value.trim()};
+  save(); closeOverrideModal(); renderReport(); toast('✅ אישור ידני נשמר');
+}
+function removeOverride() {
+  delete state.approved[ovSid];
+  save(); closeOverrideModal(); renderReport(); toast('🗑️ אישור ידני הוסר');
+}
+function closeOverrideModal() { document.getElementById('override-modal').classList.remove('open'); ovSid=null; }
+
+// ===== TOPICS =====
+let editTopIdx=null;
+function renderTopics() {
+  const t=state.topics;
+  document.getElementById('topics-badge').textContent=`${t.length} נושאים`;
+  const grid=document.getElementById('topics-grid');
+  if(!t.length){ grid.innerHTML='<div class="empty-state"><span class="icon">📚</span><p>לחץ להוסיף נושא</p></div>'; return; }
+  const sL={'not-started':'טרם התחיל','in-progress':'בתהליך','done':'הסתיים'};
+  const sC={'not-started':'s-notstarted','in-progress':'s-inprogress','done':'s-done'};
+  grid.innerHTML=t.map((tp,i)=>`
+    <div class="topic-card">
+      <div class="topic-header">
+        <div class="topic-title">${esc(tp.name)}</div>
+        <span class="topic-status ${sC[tp.status]||'s-notstarted'}">${sL[tp.status]||''}</span>
+      </div>
+      ${tp.desc?`<div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;line-height:1.5">${esc(tp.desc)}</div>`:''}
+      <div class="progress-wrap"><div class="progress-bar" style="width:${tp.progress}%"></div></div>
+      <div style="font-size:12px;color:var(--text-dim)">${tp.progress}% הושלם</div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-outline btn-sm" onclick="editTopic(${i})">✏️ ערוך</button>
+        <button class="btn btn-danger  btn-sm" onclick="delTopic(${i})">🗑️ מחק</button>
+      </div>
+    </div>`).join('');
+}
+function openTopicModal(idx) {
+  editTopIdx=idx!==undefined?idx:null;
+  const isEdit=editTopIdx!==null;
+  document.getElementById('modal-title').textContent=isEdit?'✏️ עריכת נושא':'➕ הוספת נושא';
+  if(isEdit){ const tp=state.topics[editTopIdx]; document.getElementById('topic-name').value=tp.name; document.getElementById('topic-desc').value=tp.desc||''; document.getElementById('topic-status').value=tp.status; document.getElementById('topic-progress').value=tp.progress; document.getElementById('prog-val').textContent=tp.progress; }
+  else { document.getElementById('topic-name').value=''; document.getElementById('topic-desc').value=''; document.getElementById('topic-status').value='not-started'; document.getElementById('topic-progress').value=0; document.getElementById('prog-val').textContent='0'; }
+  document.getElementById('topic-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('topic-name').focus(),100);
+}
+function editTopic(i){ openTopicModal(i); }
+function closeTopicModal(){ document.getElementById('topic-modal').classList.remove('open'); }
+function saveTopic(){
+  const name=document.getElementById('topic-name').value.trim();
+  if(!name){ alert('אנא הכנס שם נושא'); return; }
+  const tp={name,desc:document.getElementById('topic-desc').value.trim(),status:document.getElementById('topic-status').value,progress:parseInt(document.getElementById('topic-progress').value)};
+  if(editTopIdx!==null) state.topics[editTopIdx]=tp; else state.topics.push(tp);
+  save(); closeTopicModal(); renderTopics(); toast(editTopIdx!==null?'✅ נושא עודכן':'✅ נושא נוסף');
+}
+function delTopic(i){ if(!confirm(`למחוק "${state.topics[i].name}"?`)) return; state.topics.splice(i,1); save(); renderTopics(); toast('🗑️ נמחק'); }
+
+['topic-modal','override-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this){ if(id==='topic-modal') closeTopicModal(); else closeOverrideModal(); } });
+});
+
+// ===== NOTES =====
+let selStu=null, noteFilter='all';
+
+function renderNotes() {
+  const sb=document.getElementById('notes-sidebar');
+  sb.innerHTML='<div class="sidebar-header">בחר סטודנט</div>'+
+    STUDENTS.map(s=>{
+      const notes=state.notes[s.id]||[];
+      const open=notes.filter(n=>!n.done).length;
+      const unc=notes.filter(n=>!n.done&&n.type==='unclear').length;
+      return `<div class="sidebar-item ${selStu===s.id?'active':''}" onclick="selectStu(${s.id})">
+        <span>${esc(s.name)}</span>
+        <span style="display:flex;gap:3px;align-items:center">
+          ${unc>0?`<span style="background:rgba(245,158,11,.22);color:var(--yellow);border-radius:10px;font-size:10px;font-weight:800;padding:1px 6px">❓${unc}</span>`:''}
+          ${open>0?`<span class="todo-badge">${open}</span>`:''}
+        </span>
+      </div>`;
+    }).join('');
+  if(selStu) renderStuNotes(selStu);
+}
+function selectStu(id){ selStu=id; noteFilter='all'; renderNotes(); }
+
+function renderStuNotes(id) {
+  const panel=document.getElementById('notes-panel');
+  const s=STUDENTS.find(x=>x.id===id);
+  const allN=state.notes[id]||[];
+  const open=allN.filter(n=>!n.done).length;
+  const unc=allN.filter(n=>!n.done&&n.type==='unclear').length;
+  const shown=noteFilter==='all'?allN:allN.filter(n=>n.type===noteFilter);
+
+  panel.innerHTML=`
+    <div class="notes-panel-title">
+      ${esc(s.name)}
+      ${open>0?`<span class="badge" style="color:var(--red);border-color:var(--red)">${open} פתוחות</span>`:''}
+      ${unc>0?`<span class="badge" style="color:var(--yellow);border-color:rgba(245,158,11,.4)">❓ ${unc} לא מובן</span>`:''}
+    </div>
+    <div class="note-add-row">
+      <select class="note-type-select" id="nt-${id}">
+        ${Object.entries(NOTE_TYPES).map(([k,v])=>`<option value="${k}">${v.icon} ${v.label}</option>`).join('')}
+      </select>
+      <input class="todo-input" id="ni-${id}" placeholder="הוסף הערה, משימה, נושא שלא הובן..."
+             onkeydown="if(event.key==='Enter') addNote(${id})">
+      <button class="btn btn-primary btn-sm" onclick="addNote(${id})">＋ הוסף</button>
+    </div>
+    <div class="notes-filter">
+      <button class="filter-btn ${noteFilter==='all'?'active':''}" onclick="setFilter(${id},'all')">הכל (${allN.length})</button>
+      ${Object.entries(NOTE_TYPES).map(([k,v])=>{
+        const cnt=allN.filter(n=>n.type===k).length;
+        return cnt>0?`<button class="filter-btn ${noteFilter===k?'active':''}" onclick="setFilter(${id},'${k}')">${v.icon} ${v.label} (${cnt})</button>`:'';
+      }).join('')}
+    </div>
+    <ul class="todo-list">
+      ${!shown.length
+        ?'<div class="empty-state" style="padding:24px"><span class="icon" style="font-size:32px">✅</span><p>אין הערות בקטגוריה זו</p></div>'
+        :shown.map(n=>{
+          const ri=allN.indexOf(n);
+          const nt=NOTE_TYPES[n.type]||NOTE_TYPES.general;
+          return `<li class="todo-item">
+            <div class="todo-check ${n.done?'done':''}" onclick="toggleN(${id},${ri})">${n.done?'✓':''}</div>
+            <div style="flex:1">
+              <span class="note-type-tag ${nt.cls}">${nt.icon} ${nt.label}</span>
+              <div class="todo-text ${n.done?'done':''}">${esc(n.text)}</div>
+              <div class="todo-meta">${n.date}</div>
+            </div>
+            <div class="todo-del" onclick="delN(${id},${ri})">×</div>
+          </li>`;
+        }).join('')
+      }
+    </ul>`;
+}
+function setFilter(id,f){ noteFilter=f; renderStuNotes(id); }
+function addNote(id){
+  const inp=document.getElementById(`ni-${id}`), type=document.getElementById(`nt-${id}`).value, text=inp.value.trim();
+  if(!text) return;
+  if(!state.notes[id]) state.notes[id]=[];
+  state.notes[id].unshift({text,type,done:false,date:new Date().toLocaleDateString('he-IL')});
+  save(); inp.value=''; renderStuNotes(id); renderNotes();
+}
+function toggleN(id,i){ state.notes[id][i].done=!state.notes[id][i].done; save(); renderStuNotes(id); renderNotes(); }
+function delN(id,i){ state.notes[id].splice(i,1); save(); renderStuNotes(id); renderNotes(); }
+
+// ===== INIT =====
+renderStudents();
+</script>
+</body>
+</html>
